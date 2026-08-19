@@ -1,9 +1,64 @@
-const WEEKDAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
-const WEEKEND_NAMES = ['Sat', 'Sun']
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-function createWeekday(day) {
+export const PLAN_START = new Date(2026, 7, 17)
+export const PLAN_END = new Date(2026, 9, 31)
+const TOTAL_WEEKS = 11
+
+function addDays(date, days) {
+  const result = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  result.setDate(result.getDate() + days)
+  return result
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+export function toDateString(date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+export function parseDateString(str) {
+  const [y, m, d] = str.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function formatDate(date) {
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}`
+}
+
+function formatDayLabel(date) {
+  return `${DAY_NAMES[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`
+}
+
+export function isSameDay(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+export function isPastDay(dateStr) {
+  const today = startOfDay(new Date())
+  const day = startOfDay(parseDateString(dateStr))
+  return day < today
+}
+
+export function isToday(dateStr) {
+  const today = startOfDay(new Date())
+  const day = startOfDay(parseDateString(dateStr))
+  return isSameDay(day, today)
+}
+
+function createWeekdayEntry(date) {
   return {
-    day,
+    day: formatDayLabel(date),
+    date: toDateString(date),
     vocabDone: false,
     grammarVideoNumber: '',
     reasoningMockDone: false,
@@ -11,9 +66,10 @@ function createWeekday(day) {
   }
 }
 
-function createWeekendDay(day) {
+function createWeekendEntry(date) {
   return {
-    day,
+    day: formatDayLabel(date),
+    date: toDateString(date),
     vocabDone: false,
     mathTopic: '',
     mockScore: '',
@@ -21,23 +77,33 @@ function createWeekendDay(day) {
   }
 }
 
-function formatDate(date) {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  return `${months[date.getMonth()]} ${date.getDate()}`
-}
-
 function createWeek(weekNumber, startDate, endDate) {
   const phase = weekNumber <= 9 ? 'Building Phase' : 'Revision Phase'
   const label = `Week ${weekNumber} (${formatDate(startDate)} – ${formatDate(endDate)})`
 
+  const weekdays = []
+  const weekend = []
+
+  for (let offset = 0; offset < 7; offset += 1) {
+    const dayDate = addDays(startDate, offset)
+    if (dayDate > endDate) break
+
+    const dayOfWeek = dayDate.getDay()
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      weekdays.push(createWeekdayEntry(dayDate))
+    } else {
+      weekend.push(createWeekendEntry(dayDate))
+    }
+  }
+
   return {
     weekNumber,
-    startDate: startDate.toISOString().slice(0, 10),
-    endDate: endDate.toISOString().slice(0, 10),
+    startDate: toDateString(startDate),
+    endDate: toDateString(endDate),
     label,
     phase,
-    weekdays: WEEKDAY_NAMES.map(createWeekday),
-    weekend: WEEKEND_NAMES.map(createWeekendDay),
+    weekdays,
+    weekend,
     weekSummary: {
       videosDone: 0,
       mocksTaken: 0,
@@ -47,22 +113,21 @@ function createWeek(weekNumber, startDate, endDate) {
 }
 
 export function createInitialWeeks() {
-  const ranges = [
-    [new Date(2026, 7, 18), new Date(2026, 7, 24)],
-    [new Date(2026, 7, 25), new Date(2026, 7, 31)],
-    [new Date(2026, 8, 1), new Date(2026, 8, 7)],
-    [new Date(2026, 8, 8), new Date(2026, 8, 14)],
-    [new Date(2026, 8, 15), new Date(2026, 8, 21)],
-    [new Date(2026, 8, 22), new Date(2026, 8, 28)],
-    [new Date(2026, 8, 29), new Date(2026, 9, 5)],
-    [new Date(2026, 9, 6), new Date(2026, 9, 12)],
-    [new Date(2026, 9, 13), new Date(2026, 9, 19)],
-    [new Date(2026, 9, 20), new Date(2026, 9, 26)],
-    [new Date(2026, 9, 27), new Date(2026, 9, 31)],
-  ]
+  const weeks = []
 
-  return ranges.map(([start, end], index) => createWeek(index + 1, start, end))
+  for (let i = 0; i < TOTAL_WEEKS; i += 1) {
+    const weekStart = addDays(PLAN_START, i * 7)
+    const normalWeekEnd = addDays(weekStart, 6)
+    const weekEnd = normalWeekEnd > PLAN_END ? PLAN_END : normalWeekEnd
+    weeks.push(createWeek(i + 1, weekStart, weekEnd))
+  }
+
+  return weeks
+}
+
+function countPlanDays(weeks) {
+  return weeks.reduce((sum, week) => sum + week.weekdays.length + week.weekend.length, 0)
 }
 
 export const TOTAL_GRAMMAR_VIDEOS = 70
-export const TOTAL_DAYS = 11 * 7
+export const TOTAL_DAYS = countPlanDays(createInitialWeeks())

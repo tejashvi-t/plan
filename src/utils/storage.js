@@ -5,16 +5,31 @@ const LAST_WEEK_KEY = 'ssc-cgl-last-week'
 
 function mergeWeek(saved, initial) {
   return {
-    ...initial,
-    ...saved,
-    weekdays: initial.weekdays.map((day, i) => ({
-      ...day,
-      ...(saved.weekdays?.[i] ?? {}),
-    })),
-    weekend: initial.weekend.map((day, i) => ({
-      ...day,
-      ...(saved.weekend?.[i] ?? {}),
-    })),
+    weekNumber: initial.weekNumber,
+    startDate: initial.startDate,
+    endDate: initial.endDate,
+    label: initial.label,
+    phase: initial.phase,
+    weekdays: initial.weekdays.map((day, i) => {
+      const savedDay = saved.weekdays?.[i] ?? {}
+      return {
+        ...day,
+        vocabDone: savedDay.vocabDone ?? false,
+        grammarVideoNumber: savedDay.grammarVideoNumber ?? '',
+        reasoningMockDone: savedDay.reasoningMockDone ?? false,
+        notes: savedDay.notes ?? '',
+      }
+    }),
+    weekend: initial.weekend.map((day, i) => {
+      const savedDay = saved.weekend?.[i] ?? {}
+      return {
+        ...day,
+        vocabDone: savedDay.vocabDone ?? false,
+        mathTopic: savedDay.mathTopic ?? '',
+        mockScore: savedDay.mockScore ?? '',
+        weakAreas: savedDay.weakAreas ?? '',
+      }
+    }),
     weekSummary: {
       ...initial.weekSummary,
       ...(saved.weekSummary ?? {}),
@@ -44,7 +59,7 @@ export function saveWeeks(weeks) {
 export function loadLastWeekIndex() {
   try {
     const raw = localStorage.getItem(LAST_WEEK_KEY)
-    if (raw == null) return 0
+    if (!raw) return 0
     const index = parseInt(raw, 10)
     return Number.isNaN(index) ? 0 : Math.min(Math.max(index, 0), 10)
   } catch {

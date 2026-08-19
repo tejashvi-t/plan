@@ -70,7 +70,7 @@ export default function App() {
         <h1 className="text-2xl font-bold tracking-tight text-calm-900 sm:text-3xl">
           SSC CGL Prep Tracker
         </h1>
-        <p className="mt-1 text-sm text-slate-500">Aug 18 – Oct 31 · 11-week study plan</p>
+        <p className="mt-1 text-sm text-slate-500">Aug 17 – Oct 31 · 11-week study plan</p>
       </header>
 
       <div className="mb-6">

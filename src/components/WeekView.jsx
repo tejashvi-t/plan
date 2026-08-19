@@ -1,3 +1,31 @@
+import { isPastDay, isToday } from '../data/weeks'
+
+function dayRowClass(dateStr) {
+  const classes = []
+  if (isToday(dateStr)) {
+    classes.push('border-l-4 border-calm-500 bg-calm-50/40')
+  } else if (isPastDay(dateStr)) {
+    classes.push('bg-slate-50/80 opacity-75')
+  }
+  return classes.join(' ')
+}
+
+function DayLabel({ day }) {
+  const today = isToday(day.date)
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className={`font-medium ${isPastDay(day.date) && !today ? 'text-slate-400' : 'text-slate-700'}`}>
+        {day.day}
+      </span>
+      {today && (
+        <span className="w-fit rounded bg-calm-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+          Today
+        </span>
+      )}
+    </div>
+  )
+}
+
 function WeekdayTable({ weekdays, weekNumber, onUpdate }) {
   const isRevision = weekNumber >= 10
 
@@ -6,7 +34,7 @@ function WeekdayTable({ weekdays, weekNumber, onUpdate }) {
       <table>
         <thead>
           <tr>
-            <th className="w-16">Day</th>
+            <th className="w-28">Day</th>
             <th className="w-16 text-center">Vocab</th>
             <th>{isRevision ? 'Sectional / Mixed' : 'Grammar Video #'}</th>
             <th className="w-24 text-center">Reasoning Mock</th>
@@ -15,8 +43,10 @@ function WeekdayTable({ weekdays, weekNumber, onUpdate }) {
         </thead>
         <tbody>
           {weekdays.map((day, index) => (
-            <tr key={day.day} className="hover:bg-calm-50/50">
-              <td className="font-medium text-slate-700">{day.day}</td>
+            <tr key={day.date} className={`hover:bg-calm-50/50 ${dayRowClass(day.date)}`}>
+              <td>
+                <DayLabel day={day} />
+              </td>
               <td className="text-center">
                 <input
                   type="checkbox"
@@ -71,7 +101,7 @@ function WeekendTable({ weekend, onUpdate }) {
       <table>
         <thead>
           <tr>
-            <th className="w-16">Day</th>
+            <th className="w-28">Day</th>
             <th className="w-16 text-center">Vocab</th>
             <th>Math Topic</th>
             <th className="w-24">Mock Score</th>
@@ -80,8 +110,10 @@ function WeekendTable({ weekend, onUpdate }) {
         </thead>
         <tbody>
           {weekend.map((day, index) => (
-            <tr key={day.day} className="hover:bg-sage-50/50">
-              <td className="font-medium text-slate-700">{day.day}</td>
+            <tr key={day.date} className={`hover:bg-sage-50/50 ${dayRowClass(day.date)}`}>
+              <td>
+                <DayLabel day={day} />
+              </td>
               <td className="text-center">
                 <input
                   type="checkbox"
